@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ДОДА - Тарихи Интерактивті Викторина</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: #0f0c20;
+            background: radial-gradient(circle at center, #1b143f 0%, #080512 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 30px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Неонды Үлкен "ДОДА" Тақырыбы */
+        .main-title {
+            font-size: 5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            background: linear-gradient(45deg, #ff007f, #ffb703, #00f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 0, 127, 0.4);
+            margin-bottom: 5px;
+            text-align: center;
+            animation: pulseGlow 3s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { filter: drop-shadow(0 0 15px rgba(255, 0, 127, 0.6)); }
+            100% { filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.8)); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0a5c3;
+            margin-bottom: 35px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        /* Ұпайлар тақтасы (Scoreboard) */
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 950px;
+            margin-bottom: 35px;
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Командалардың әртүрлі түсті жиектері */
+        .team-1 { border: 2px solid #ff007f; box-shadow: 0 0 15px rgba(255, 0, 127, 0.2); }
+        .team-2 { border: 2px solid #ffb703; box-shadow: 0 0 15px rgba(255, 183, 3, 0.2); }
+        .team-3 { border: 2px solid #00f0ff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .team-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .team-1 h3 { color: #ff007f; }
+        .team-2 h3 { color: #ffb703; }
+        .team-3 h3 { color: #00f0ff; }
+
+        .team-score {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .score-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 2px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .score-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Сұрақтар блогы (Grid) */
+        .quiz-board {
+            width: 100%;
+            max-width: 950px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .question-btn {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 22px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question-btn:hover {
+            background: linear-gradient(90deg, #ff007f, #7928ca);
+            border-color: transparent;
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(255, 0, 127, 0.3);
+        }
+
+        .question-btn.answered {
+            background: rgba(255, 255, 255, 0.02);
+            color: #555;
+            border-color: rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        /* Модальды терезе (Сұрақты үлкейтіп ашу) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: #161233;
+            border: 2px solid #7928ca;
+            color: #fff;
+            padding: 35px;
+            border-radius: 24px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 0 40px rgba(121, 40, 202, 0.5);
+            position: relative;
+            animation: modalUp 0.3s ease;
+        }
+
+        @keyframes modalUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-question {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            color: #ffb703;
+        }
+
+        .modal-answer {
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid #00f0ff;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00f0ff;
+            display: none;
+            margin-bottom: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+        }
+
+        .btn-action {
+            padding: 14px 22px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .btn-show-answer {
+            background: linear-gradient(45deg, #00f0ff, #7928ca);
+            color: white;
+        }
+
+        .btn-close {
+            background: linear-gradient(45deg, #ff007f, #e63946);
+            color: white;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+            transform: scale(1.03);
+        }
+
+        @media (max-width: 768px) {
+            .scoreboard, .quiz-board {
+                grid-template-columns: 1fr;
+            }
+            .main-title {
+                font-size: 3.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Бас Тақырып -->
+    <h1 class="main-title">ДОДА</h1>
+    <p class="subtitle">3 КОМАНДА АРАСЫНДАҒЫ ТАРИХИ САЙЫС</p>
+
+    <!-- Командалар ұпай тақтасы -->
+    <div class="scoreboard">
+        <div class="team-card team-1">
+            <h3>1-КОМАНДА</h3>
+            <div class="team-score" id="score-1">0</div>
+            <button class="score-btn" onclick="updateScore(1, 1)">+1 Ұпай</button>
+            <button class="score-btn" onclick="updateScore(1, -1)">-1</button>
+        </div>
+
+        <div class="team-card team-2">
+            <h3>2-КОМАНДА</h3>
+            <div class="team-score" id="score-2">0</div>
+            <button class="score-btn" onclick="updateScore(2, 1)">+1 Ұпай</button>
+            <button class="score-btn" onclick="updateScore(2, -1)">-1</button>
+        </div>
+
+        <div class="team-card team-3">
+            <h3>3-КОМАНДА</h3>
+            <div class="team-score" id="score-3">0</div>
+            <button class="score-btn" onclick="updateScore(3, 1)">+1 Ұпай</button>
+            <button class="score-btn" onclick="updateScore(3, -1)">-1</button>
+        </div>
+    </div>
+
+    <!-- 6 Сұрақтан тұратын Ойын Торшасы -->
+    <div class="quiz-board">
+        <button class="question-btn" id="btn-1" onclick="openQuestion(1)">
+            <span>1-сұрақ</span> <span>➔</span>
+        </button>
+        <button class="question-btn" id="btn-2" onclick="openQuestion(2)">
+            <span>2-сұрақ</span> <span>➔</span>
+        </button>
+        <button class="question-btn" id="btn-3" onclick="openQuestion(3)">
+            <span>3-сұрақ</span> <span>➔</span>
+        </button>
+        <button class="question-btn" id="btn-4" onclick="openQuestion(4)">
+            <span>4-сұрақ</span> <span>➔</span>
+        </button>
+        <button class="question-btn" id="btn-5" onclick="openQuestion(5)">
+            <span>5-сұрақ</span> <span>➔</span>
+        </button>
+        <button class="question-btn" id="btn-6" onclick="openQuestion(6)">
+            <span>6-сұрақ</span> <span>➔</span>
+        </button>
+    </div>
+
+    <!-- Модальды терезе -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-question" id="modal-q-text">Сұрақ мазмұны...</div>
+            <div class="modal-answer" id="modal-a-text">Дұрыс жауабы: ...</div>
+            <div class="modal-actions">
+                <button class="btn-action btn-show-answer" onclick="toggleAnswer()">Жауапты көрсету</button>
+                <button class="btn-action btn-close" onclick="closeQuestion()">Жабу</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 6 Сұрақ базасы
+    const questions = {
+        1: {
+            q: "II дүниежүзілік соғыс қашан аяқталды?",
+            a: "1945 жылы (2 қыркүйек)"
+        },
+        2: {
+            q: "1380 жылы болған шайқас қалай аталады?",
+            a: "Куликово шайқасы"
+        },
+        3: {
+            q: "Исатай Махамбет бастаған шаруалар көтерілісі болған жер:",
+            a: "Бөкей ордасы (Ішкі Орда)"
+        },
+        4: {
+            q: "Орта жүзде хандық билік қашан жойылды?",
+            a: "1822 жылы («Сибирь қырғыздары туралы устав»)"
+        },
+        5: {
+            q: "Батпақ шайқасы қай мемлекеттердің (әміршілердің) арасында орын алды?",
+            a: "Әмір Темір мен Ілияс Қожа (Моғолстан) арасында (1365 ж.)"
+        },
+        6: {
+            q: "Маңғыстау (Адай) көтерілісі болған жыл?",
+            a: "1870 жылы (Досан Тәжіұлы, Иса Тіленбайұлы бастаған)"
+        }
+    };
+
+    let scores = { 1: 0, 2: 0, 3: 0 };
+    let currentQuestionId = null;
+
+    function updateScore(team, value) {
+        scores[team] += value;
+        if (scores[team] < 0) scores[team] = 0;
+        document.getElementById(`score-${team}`).innerText = scores[team];
+    }
+
+    function openQuestion(id) {
+        currentQuestionId = id;
+        document.getElementById('modal-q-text').innerText = `${id}-сұрақ: ${questions[id].q}`;
+        document.getElementById('modal-a-text').innerText = `Дұрыс жауабы: ${questions[id].a}`;
+        document.getElementById('modal-a-text').style.display = 'none';
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function toggleAnswer() {
+        const answerBlock = document.getElementById('modal-a-text');
+        answerBlock.style.display = answerBlock.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function closeQuestion() {
+        document.getElementById('modal').style.display = 'none';
+        if (currentQuestionId) {
+            const btn = document.getElementById(`btn-${currentQuestionId}`);
+            btn.classList.add('answered');
+            btn.innerHTML = `<span>${currentQuestionId}-сұрақ (Ойналды)</span> <span>✓</span>`;
+        }
+    }
+</script>
+
+</body>
+</html>
